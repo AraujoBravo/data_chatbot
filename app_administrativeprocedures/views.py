@@ -1,11 +1,10 @@
 from django.shortcuts import render
-
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from app_administrativeprocedures import models, serializers
-
+import unidecode
 
 class AskChatBot(APIView):
     model_class = models.AdministrativeProcedures
@@ -14,11 +13,12 @@ class AskChatBot(APIView):
     def get(self, request):
         unidad = request.data['unidad']
         denominacion = request.data['denominacion']
-        print(unidad)
-        print(denominacion)
-        model_object = self.model_class.objects.filter(Q(denomination_global__unit__name__iregex=unidad),
-                                                       Q(denomination_global__name__iregex=denominacion) |
-                                                       Q(denomination__iregex=denominacion))
+        # quitando tildes si hubieran
+        unidad = unidecode.unidecode(unidad)
+        denominacion = unidecode.unidecode(denominacion)
+        model_object = self.model_class.objects.filter(Q(denomination_global__unit__name__icontains=unidad),
+                                                       Q(denomination_global__name__icontains=denominacion) |
+                                                       Q(denomination__icontains=denominacion))
         if model_object.exists():
             serializer_object = self.serializer_class(model_object, many=True)
             data = {
@@ -150,6 +150,11 @@ class AdministrativeProcedures(APIView):
 
     def get(self, request):
         model_object = self.model_class.objects.all()
+        for model in model_object:
+            print(model.denomination)
+            model.denomination = unidecode.unidecode(model.denomination)
+            model.save()
+            print(model.denomination)
         serializer_object = self.serializer_class(model_object, many=True)
         data = {
             'message': "Ejecutado con éxito",
