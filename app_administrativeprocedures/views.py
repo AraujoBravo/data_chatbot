@@ -1,10 +1,39 @@
 from django.shortcuts import render
 
-# Create your views here.
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from app_administrativeprocedures import models, serializers
+
+
+class AskChatBot(APIView):
+    model_class = models.AdministrativeProcedures
+    serializer_class = serializers.AdministrativeProceduresAskSerializer
+
+    def get(self, request):
+        unidad = request.data['unidad']
+        denominacion = request.data['denominacion']
+        print(unidad)
+        print(denominacion)
+        model_object = self.model_class.objects.filter(Q(denomination_global__unit__name__iregex=unidad),
+                                                       Q(denomination_global__name__iregex=denominacion) |
+                                                       Q(denomination__iregex=denominacion))
+        if model_object.exists():
+            serializer_object = self.serializer_class(model_object, many=True)
+            data = {
+                'message': "Ejecutado con éxito",
+                'status': "success",
+                'status_code': status.HTTP_200_OK,
+                'data': serializer_object.data
+            }
+        else:
+            data = {
+                'message': "No encontrado",
+                'status': "error",
+                'status_code': status.HTTP_200_OK,
+            }
+        return Response(data)
 
 
 class Unit(APIView):

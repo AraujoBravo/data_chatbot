@@ -1,6 +1,5 @@
 from django.db import models
 
-
 # Create your models here.
 class Unit(models.Model):
     id_unit = models.AutoField(primary_key=True)

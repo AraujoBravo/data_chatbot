@@ -9,4 +9,5 @@ urlpatterns = [
          name='procedimientos_administrativos'),
     path('requisitos_procedimientos_administrativos/', views.AdministrativeProceduresRequest.as_view(),
          name='requisitos_procedimientos_Administrativos'),
+    path('ask/', views.AskChatBot.as_view(), name='ask'),
 ]
